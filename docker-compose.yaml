@@ -1,0 +1,36 @@
+version: '3.5'
+
+services:
+  postgres_idz_db:
+    container_name: idz_db
+    image: postgres:latest
+    restart: always
+    ports:
+      - '5435:5432'
+    env_file:
+      - ./docker/postgres/db.env
+    volumes:
+      - ./var/lib/postgresql/data:/var/lib/postgresql/data
+
+  php_idz_db:
+    container_name: idz_site
+    build: docker/php
+    restart: always
+    ports:
+      - '9000:9000'
+    volumes:
+      - ./:/var/www/idz:cached
+    links:
+      - postgres_idz_db
+
+  nginx_idz_db:
+    container_name: idz_nginx
+    restart: always
+    build: docker/nginx
+    ports:
+      - '80:80'
+    links:
+      - php_idz_db
+    volumes:
+      - ./:/var/www/idz:cached
+      - ./var/logs/nginx/:/var/log/nginx:cached
